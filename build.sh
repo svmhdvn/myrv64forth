@@ -4,7 +4,10 @@
 # This file has been adapted from David Smith's SmithForth
 # (https://dacvs.neocities.org/SF/)
 
-F="SForth"
+set -eu
+
+I="$1"
+O="$2"
 
 compile() {
     cut -d'#' -f1 | xxd -p -r
@@ -18,10 +21,11 @@ replace() {
     sed "/${1}.*build.sh/ s/^\S\S \S\S \S\S \S\S/${2}/"
 }
 
-cat ${F}.dmp | compile >${F}0
-cat ${F}0 system.fs input.fs >$F
-m=`bytes <${F}0`
-n=`bytes <$F`
-cat ${F}.dmp | replace p_filesz "$n" | compile >${F}0
-cat ${F}0 system.fs input.fs >$F
-chmod +x $F
+compile < SForth.dmp > "${O}0"
+cat "${O}0" system.fs "${I}" > "${O}"
+n="$(bytes < "${O}")"
+
+replace p_filesz "$n" < SForth.dmp | compile > "${O}0"
+cat "${O}0" system.fs "${I}" > "${O}"
+rm -f "${O}0"
+chmod +x "${O}"
